@@ -1,5 +1,5 @@
-import axios from 'axios';
-import nodemailer from 'nodemailer';
+const axios = require("axios");
+const nodemailer = require("nodemailer");
 
 const DISCORD_WEBHOOK_URL = `https://discord.com/api/webhooks/1439653966286946337/${process.env.WEBHOOK_TOKEN}`;
 
