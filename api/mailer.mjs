@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from 'axios/dist/node/axios.cjs';
 import nodemailer from 'nodemailer';
 
 const DISCORD_WEBHOOK_URL = `https://discord.com/api/webhooks/1439653966286946337/${process.env.WEBHOOK_TOKEN}`;
