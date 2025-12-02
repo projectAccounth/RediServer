@@ -34,7 +34,6 @@ export default async function handler(req, res) {
     });
 
     if (body.sendEmail && body.email && body.email.subject && body.email.text) {
-      // Configure your SMTP transporter
       const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
