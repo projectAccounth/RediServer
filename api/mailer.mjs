@@ -1,7 +1,45 @@
-import axios from 'axios/dist/node/axios.cjs';
+import https from 'https';
 import nodemailer from 'nodemailer';
 
 const DISCORD_WEBHOOK_URL = `https://discord.com/api/webhooks/1439653966286946337/${process.env.WEBHOOK_TOKEN}`;
+
+function sendDiscordWebhook(url, payload) {
+  return new Promise((resolve, reject) => {
+    const data = JSON.stringify(payload);
+    const urlObj = new URL(url);
+
+    const options = {
+      hostname: urlObj.hostname,
+      path: urlObj.pathname + urlObj.search,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': data.length,
+      },
+    };
+
+    const req = https.request(options, (res) => {
+      let responseData = '';
+      res.on('data', (chunk) => {
+        responseData += chunk;
+      });
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          resolve(responseData);
+        } else {
+          reject(new Error(`HTTP Status: ${res.statusCode}, Response: ${responseData}`));
+        }
+      });
+    });
+
+    req.on('error', (err) => {
+      reject(err);
+    });
+
+    req.write(data);
+    req.end();
+  });
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -29,9 +67,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    await axios.post(DISCORD_WEBHOOK_URL, discordPayload, {
-      headers: { 'Content-Type': 'application/json' },
-    });
+    await sendDiscordWebhook(DISCORD_WEBHOOK_URL, discordPayload);
 
     if (body.sendEmail && body.email && body.email.subject && body.email.text) {
       const transporter = nodemailer.createTransport({
@@ -55,7 +91,7 @@ export default async function handler(req, res) {
 
     res.status(200).json({ success: true, message: "Discord and email sent successfully" });
   } catch (err) {
-    console.error("Error:", err.response?.data || err.message);
-    res.status(500).json({ success: false, error: err.response?.data || err.message });
+    console.error("Error:", err.message);
+    res.status(500).json({ success: false, error: err.message });
   }
 }
